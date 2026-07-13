@@ -1,0 +1,1 @@
+# swoop-seo-analyser
