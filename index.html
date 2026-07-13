@@ -105,6 +105,7 @@ button{font-family:inherit;cursor:pointer}
 
 /* Section cards */
 .sections-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.sections-grid > .section-card:last-child:nth-child(odd){grid-column:1 / -1}
 .section-card{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
 .section-head{width:100%;display:flex;align-items:center;gap:14px;background:none;border:none;text-align:left;padding:18px 20px}
 .section-head:hover{background:#FBFAFC}
@@ -113,7 +114,8 @@ button{font-family:inherit;cursor:pointer}
 .section-score small{font-weight:600;font-size:.72rem;color:var(--muted2)}
 .chev{flex:0 0 auto;color:var(--muted2);transition:transform .18s ease;font-size:.8rem}
 .section-head[aria-expanded="true"] .chev{transform:rotate(90deg)}
-.section-meter{height:5px;background:var(--line);margin:0 20px}
+.section-meter{height:5px;background:var(--line);margin:0 20px 16px}
+.section-head[aria-expanded="true"] + .section-meter{margin-bottom:0}
 .section-meter > span{display:block;height:100%;border-radius:3px}
 .section-body{display:none;padding:14px 20px 18px}
 .section-head[aria-expanded="true"] + .section-meter + .section-body{display:block}
@@ -782,7 +784,7 @@ if (typeof document !== "undefined" && document.getElementById && document.getEl
   // ============================================================
   // RECOMMENDED SETUP: deploy the free Cloudflare Worker supplied
   // alongside this file, then paste its URL here, e.g.
-  //   var CUSTOM_PROXY_URL = "https://swoop-seo-proxy.yourname.workers.dev/?url=";
+  //   var CUSTOM_PROXY_URL = "https://swoop-seo-proxy.throbbing-scene-2ff8.workers.dev/?url=";
   // With it set, the tool uses YOUR proxy (fast, reliable, no rate
   // limits that matter). The public proxies below then only serve
   // as emergency fallbacks. Without it, the tool depends entirely
