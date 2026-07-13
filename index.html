@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free SEO Analyser | Swoop Digital</title>
+<meta name="description" content="Paste your website URL and get a plain-English SEO report in under a minute. Free, no sign-up. Built by Swoop Digital.">
+<style>
+:root{
+  --pink:#FE64A3;
+  --plum:#2E2535;
+  --muted:#574B60;
+  --muted2:#7D8491;
+  --bg:#F8F7FA;
+  --card:#FFFFFF;
+  --line:#ECE9F0;
+  --amber-accent:#FFA400;
+  --pass:#16A34A;
+  --fail:#DC2626;
+  --warn:#D97706;
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
+body{font-family:var(--font);background:var(--bg);color:var(--plum);line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--pink)}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--pink);outline-offset:2px;border-radius:4px}
+
+/* Header */
+.topbar{background:var(--plum);color:#fff;padding:14px 20px}
+.topbar-inner{max-width:920px;margin:0 auto;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.wordmark{font-weight:800;font-size:1.05rem;letter-spacing:.02em;color:#fff;text-decoration:none}
+.wordmark .swoosh{color:var(--pink)}
+.topbar .tool-name{font-size:.85rem;color:#CFC7D6;font-weight:500;letter-spacing:.14em;text-transform:uppercase}
+.run-meta{margin-left:auto;font-size:.78rem;color:#B9AFC4;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+
+.wrap{max-width:920px;margin:0 auto;padding:0 20px 72px}
+
+/* Hero / input */
+.hero{padding:52px 0 36px;text-align:left;max-width:640px}
+.hero h1{font-size:clamp(1.7rem,4.5vw,2.4rem);font-weight:800;letter-spacing:-.02em;line-height:1.15}
+.hero h1 em{font-style:normal;color:var(--pink)}
+.hero p.lede{margin-top:12px;color:var(--muted);font-size:1.02rem;max-width:54ch}
+.analyse-form{margin-top:26px;display:flex;gap:10px;flex-wrap:wrap}
+.url-field{flex:1 1 320px;min-width:0;padding:14px 16px;font-size:1rem;font-family:inherit;border:2px solid var(--line);border-radius:10px;background:var(--card);color:var(--plum)}
+.url-field::placeholder{color:var(--muted2)}
+.url-field:focus{outline:none;border-color:var(--pink)}
+.url-field[aria-invalid="true"]{border-color:var(--fail)}
+.go-btn{padding:14px 28px;font-size:1rem;font-weight:700;color:#fff;background:var(--pink);border:none;border-radius:10px;transition:background .15s ease,transform .1s ease}
+.go-btn:hover{background:#e9508f}
+.go-btn:active{transform:translateY(1px)}
+.go-btn:disabled{background:#f3a9c9;cursor:wait}
+.input-note{margin-top:10px;font-size:.85rem;color:var(--muted2)}
+.input-note.is-error{color:var(--fail);font-weight:600}
+.input-note.is-info{color:var(--muted)}
+
+/* Loading */
+.loading{display:none;padding:56px 0;text-align:center}
+.loading.active{display:block}
+.orbit{width:64px;height:64px;margin:0 auto 22px;border-radius:50%;border:4px solid var(--line);border-top-color:var(--pink);animation:spin 0.9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-msg{font-size:1.02rem;font-weight:600;color:var(--plum)}
+.loading-sub{margin-top:6px;font-size:.85rem;color:var(--muted2)}
+
+/* Fetch error */
+.fetch-error{display:none;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--fail);border-radius:12px;padding:22px 24px;margin-top:28px}
+.fetch-error.active{display:block}
+.fetch-error h2{font-size:1.05rem;margin-bottom:8px}
+.fetch-error p{color:var(--muted);font-size:.95rem}
+.fetch-error p + p{margin-top:8px}
+.diag-title{margin-top:14px;font-weight:700;font-size:.82rem;color:var(--plum)}
+.diag-list{margin:6px 0 0 18px;font-size:.82rem;color:var(--muted2)}
+.diag-list li{margin-top:2px}
+.diag-hint{margin-top:10px;font-size:.85rem;color:var(--muted);background:var(--bg);border-radius:8px;padding:10px 14px}
+
+/* Results */
+.results{display:none}
+.results.active{display:flex;flex-direction:column;gap:18px;margin-top:8px}
+
+/* Overall score — signature element */
+.score-hero{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:30px 28px;display:flex;align-items:center;gap:30px;flex-wrap:wrap;position:relative;overflow:hidden}
+.score-hero::before{content:"";position:absolute;inset:0 auto 0 0;width:6px;background:var(--band-color,var(--pink))}
+.dial{position:relative;width:158px;height:158px;flex:0 0 auto}
+.dial-ring{width:100%;height:100%;border-radius:50%;background:conic-gradient(var(--band-color) calc(var(--pct)*1%),var(--line) 0);display:flex;align-items:center;justify-content:center;transition:background .3s ease}
+.dial-core{width:118px;height:118px;border-radius:50%;background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center}
+.dial-num{font-size:2.6rem;font-weight:800;letter-spacing:-.03em;line-height:1;color:var(--band-color)}
+.dial-of{font-size:.72rem;color:var(--muted2);letter-spacing:.12em;text-transform:uppercase;margin-top:4px}
+.score-text{flex:1 1 260px;min-width:0}
+.score-band{display:inline-block;font-size:.74rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#fff;background:var(--band-color);padding:4px 12px;border-radius:999px}
+.score-verdict{margin-top:12px;font-size:clamp(1.15rem,3vw,1.45rem);font-weight:800;letter-spacing:-.01em;line-height:1.3}
+.score-url{margin-top:8px;font-size:.85rem;color:var(--muted2);word-break:break-all}
+
+/* Platform + limitations */
+.meta-row{display:flex;gap:18px;flex-wrap:wrap}
+.platform-badge{flex:1 1 280px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 20px;display:flex;gap:14px;align-items:flex-start}
+.platform-icon{flex:0 0 auto;width:38px;height:38px;border-radius:9px;background:var(--plum);color:var(--pink);font-weight:800;font-size:1.05rem;display:flex;align-items:center;justify-content:center}
+.platform-name{font-weight:700;font-size:.95rem}
+.platform-note{font-size:.85rem;color:var(--muted);margin-top:2px}
+.limits{flex:1 1 280px;font-size:.8rem;color:var(--muted2);background:transparent;border:1px dashed var(--line);border-radius:12px;padding:14px 18px;align-self:stretch;display:flex;align-items:center}
+
+/* Section cards */
+.sections-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.section-card{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.section-head{width:100%;display:flex;align-items:center;gap:14px;background:none;border:none;text-align:left;padding:18px 20px}
+.section-head:hover{background:#FBFAFC}
+.section-title{font-weight:700;font-size:.98rem;flex:1;min-width:0}
+.section-score{font-weight:800;font-size:1.05rem;white-space:nowrap}
+.section-score small{font-weight:600;font-size:.72rem;color:var(--muted2)}
+.chev{flex:0 0 auto;color:var(--muted2);transition:transform .18s ease;font-size:.8rem}
+.section-head[aria-expanded="true"] .chev{transform:rotate(90deg)}
+.section-meter{height:5px;background:var(--line);margin:0 20px}
+.section-meter > span{display:block;height:100%;border-radius:3px}
+.section-body{display:none;padding:14px 20px 18px}
+.section-head[aria-expanded="true"] + .section-meter + .section-body{display:block}
+.check{display:flex;gap:11px;padding:9px 0;border-top:1px solid var(--line);font-size:.88rem}
+.check:first-child{border-top:none}
+.check .ico{flex:0 0 20px;font-weight:800;line-height:1.4;text-align:center}
+.check.pass .ico{color:var(--pass)}
+.check.fail .ico{color:var(--fail)}
+.check.warn .ico{color:var(--warn)}
+.check .what{font-weight:700;color:var(--plum)}
+.check .why{color:var(--muted);margin-top:1px}
+.check .crit{display:inline-block;font-size:.68rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#fff;background:var(--fail);border-radius:4px;padding:1px 7px;margin-left:6px;vertical-align:1px}
+.skipped-note{font-size:.82rem;color:var(--muted2);background:var(--card);border:1px dashed var(--line);border-radius:10px;padding:12px 16px}
+
+/* Quick wins */
+.quick-wins{background:var(--plum);color:#fff;border-radius:16px;padding:28px}
+.qw-eyebrow{font-size:.74rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--pink)}
+.qw-title{font-size:1.35rem;font-weight:800;margin-top:6px;letter-spacing:-.01em}
+.qw-list{list-style:none;margin-top:18px;display:flex;flex-direction:column;gap:14px}
+.qw-item{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:16px 18px;display:flex;gap:14px}
+.qw-n{flex:0 0 30px;height:30px;border-radius:50%;background:var(--pink);color:var(--plum);font-weight:800;display:flex;align-items:center;justify-content:center;font-size:.95rem}
+.qw-what{font-weight:700;font-size:.97rem}
+.qw-how{font-size:.87rem;color:#D8D1DF;margin-top:4px}
+.qw-none{font-size:.95rem;color:#D8D1DF;margin-top:14px}
+
+/* CTA + actions */
+.cta-line{text-align:center;font-size:.95rem;color:var(--muted)}
+.actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.ghost-btn{padding:12px 22px;font-size:.92rem;font-weight:700;border-radius:10px;border:2px solid var(--line);background:var(--card);color:var(--plum);transition:border-color .15s ease}
+.ghost-btn:hover{border-color:var(--pink)}
+.ghost-btn.copied{border-color:var(--pass);color:var(--pass)}
+
+.foot{margin-top:56px;text-align:center;font-size:.78rem;color:var(--muted2)}
+
+/* Mobile: score + quick wins first */
+@media (max-width:767px){
+  .sections-grid{grid-template-columns:1fr}
+  .results.active{display:flex}
+  .score-hero{order:1;flex-direction:column;text-align:center;gap:18px}
+  .score-hero::before{inset:0 0 auto 0;width:auto;height:6px}
+  .meta-row{order:2}
+  .quick-wins{order:3}
+  .sections-grid{order:4}
+  .skipped-note{order:5}
+  .cta-line{order:6}
+  .actions{order:7}
+  .hero{padding-top:36px}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="wordmark" href="https://swoopdigital.co.uk">Swoop<span class="swoosh">.</span> Digital</a>
+    <span class="tool-name">SEO Analyser</span>
+    <span class="run-meta" id="runMeta"></span>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="hero" id="hero">
+    <h1>How does your website look to <em>Google</em>?</h1>
+    <p class="lede">Paste your URL below and get a plain-English report in under a minute. Free, no sign-up, nothing to install — the same checks we run at the start of every workshop.</p>
+    <form class="analyse-form" id="form" novalidate>
+      <label for="urlInput" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Your website address</label>
+      <input class="url-field" id="urlInput" type="text" inputmode="url" autocomplete="url" spellcheck="false"
+             placeholder="yourbusiness.co.uk" aria-describedby="inputNote">
+      <button class="go-btn" id="goBtn" type="submit">Analyse</button>
+    </form>
+    <p class="input-note" id="inputNote" role="status"></p>
+  </section>
+
+  <section class="loading" id="loading" aria-live="polite">
+    <div class="orbit" aria-hidden="true"></div>
+    <p class="loading-msg" id="loadingMsg">Fetching your page&hellip;</p>
+    <p class="loading-sub">Usually takes 5&ndash;20 seconds</p>
+  </section>
+
+  <section class="fetch-error" id="fetchError" role="alert">
+    <h2>We couldn't fetch this page</h2>
+    <p id="fetchErrorBody">It may be blocking external requests. Try opening <a href="https://pagespeed.web.dev" target="_blank" rel="noopener">PageSpeed Insights</a> for a technical check, or contact us and we'll run a manual audit &mdash; <a href="mailto:hello@swoopdigital.co.uk">hello@swoopdigital.co.uk</a>.</p>
+    <div id="fetchDiag"></div>
+  </section>
+
+  <section class="results" id="results" aria-live="polite">
+
+    <div class="score-hero" id="scoreHero">
+      <div class="dial" role="img" id="dial" aria-label="">
+        <div class="dial-ring" id="dialRing">
+          <div class="dial-core">
+            <span class="dial-num" id="scoreNum">0</span>
+            <span class="dial-of">out of 100</span>
+          </div>
+        </div>
+      </div>
+      <div class="score-text">
+        <span class="score-band" id="scoreBand"></span>
+        <p class="score-verdict" id="scoreVerdict"></p>
+        <p class="score-url" id="scoreUrl"></p>
+      </div>
+    </div>
+
+    <div class="meta-row">
+      <div class="platform-badge">
+        <span class="platform-icon" id="platformIcon" aria-hidden="true">?</span>
+        <div>
+          <p class="platform-name" id="platformName"></p>
+          <p class="platform-note" id="platformNote"></p>
+        </div>
+      </div>
+      <p class="limits">This analysis reads your page's HTML. It cannot access Google Search Console data, check backlinks, or measure real-world Core Web Vitals &mdash; but it catches the most common issues.</p>
+    </div>
+
+    <div class="sections-grid" id="sectionsGrid"></div>
+
+    <div class="quick-wins" id="quickWins">
+      <p class="qw-eyebrow">Start here</p>
+      <h2 class="qw-title">Your three quick wins</h2>
+      <ol class="qw-list" id="qwList"></ol>
+    </div>
+
+    <p class="skipped-note" id="skippedNote" hidden></p>
+
+    <p class="cta-line">Want a full audit with competitor research and a priority fix list? Get in touch &mdash; <a href="mailto:hello@swoopdigital.co.uk">hello@swoopdigital.co.uk</a></p>
+
+    <div class="actions">
+      <button class="ghost-btn" id="copyBtn" type="button">Copy summary</button>
+      <button class="ghost-btn" id="resetBtn" type="button">Analyse another site</button>
+    </div>
+
+  </section>
+
+  <p class="foot">Free tool by <a href="https://swoopdigital.co.uk">Swoop Digital</a>. Your URL is fetched once to run the checks and never stored.</p>
+
+</main>
+
+<script>
+/* ================= Swoop Digital SEO Analyser ================= */
+"use strict";
+
+/* ---------- URL validation ---------- */
+function normaliseUrl(raw) {
+  var input = (raw || "").trim();
+  if (!input) return { ok: false, error: "Type your website address first — e.g. yourbusiness.co.uk" };
+  if (/\s/.test(input)) return { ok: false, error: "That doesn't look like a web address — remove the spaces and try again." };
+  var prepended = false;
+  if (!/^https?:\/\//i.test(input)) { input = "https://" + input; prepended = true; }
+  var u;
+  try { u = new URL(input); } catch (e) {
+    return { ok: false, error: "That doesn't look like a valid web address. Try the format yourbusiness.co.uk" };
+  }
+  var host = u.hostname;
+  if (!host.includes(".") || !/\.[a-z]{2,}$/i.test(host)) {
+    return { ok: false, error: "That address is missing a domain ending like .co.uk or .com — check it and try again." };
+  }
+  return { ok: true, url: u.href, prepended: prepended, hostname: host };
+}
+
+/* ---------- helpers ---------- */
+function rootDomain(hostname) {
+  var h = (hostname || "").toLowerCase().replace(/^www\./, "");
+  var parts = h.split(".");
+  if (parts.length <= 2) return h;
+  var twoLevel = /^(co|org|gov|ac|net|sch|me|ltd|plc|nhs)\.(uk|nz|au|za|in|jp|il|kr)$/;
+  var lastTwo = parts.slice(-2).join(".");
+  return twoLevel.test(lastTwo) ? parts.slice(-3).join(".") : lastTwo;
+}
+
+function getVisibleText(doc, excludeChrome) {
+  var body = doc.body;
+  if (!body) return "";
+  var clone = body.cloneNode(true);
+  var strip = ["script", "style", "noscript", "template", "svg", "iframe"];
+  if (excludeChrome) strip = strip.concat(["nav", "header", "footer", "aside"]);
+  strip.forEach(function (sel) {
+    var nodes = clone.querySelectorAll(sel);
+    for (var i = 0; i < nodes.length; i++) nodes[i].parentNode.removeChild(nodes[i]);
+  });
+  if (excludeChrome) {
+    var roles = clone.querySelectorAll('[role="navigation"],[role="banner"],[role="contentinfo"]');
+    for (var j = 0; j < roles.length; j++) roles[j].parentNode.removeChild(roles[j]);
+  }
+  return (clone.textContent || "").replace(/\s+/g, " ").trim();
+}
+
+function meta(doc, name) {
+  var el = doc.querySelector('meta[name="' + name + '" i]');
+  return el ? (el.getAttribute("content") || "").trim() : null;
+}
+function metaProp(doc, prop) {
+  var el = doc.querySelector('meta[property="' + prop + '" i], meta[name="' + prop + '" i]');
+  return el ? (el.getAttribute("content") || "").trim() : null;
+}
+
+var UK_PLACES = ["southampton","portsmouth","winchester","basingstoke","eastleigh","fareham","gosport","havant","andover","aldershot","farnborough","romsey","petersfield","waterlooville","lymington","fleet","alton","hedge end","totton","new forest","hampshire","surrey","sussex","dorset","wiltshire","berkshire","kent","essex","london","bristol","bath","reading","guildford","brighton","bournemouth","poole","salisbury","oxford","cambridge","birmingham","manchester","leeds","liverpool","sheffield","newcastle","nottingham","leicester","coventry","cardiff","swansea","edinburgh","glasgow","aberdeen","dundee","belfast","york","exeter","plymouth","norwich","ipswich","chelmsford","milton keynes","luton","swindon","gloucester","cheltenham","worcester","derby","stoke","hull","bradford","wolverhampton","sunderland","middlesbrough","chichester","crawley","woking","basildon","slough","watford","st albans","canterbury","maidstone","near me"];
+
+/* ---------- platform detection ---------- */
+function detectPlatform(html, doc) {
+  var h = html.toLowerCase();
+  var gen = (meta(doc, "generator") || "").toLowerCase();
+  if (gen.indexOf("squarespace") !== -1 || h.indexOf("squarespace.com") !== -1 || h.indexOf("squarespace-cdn") !== -1)
+    return { name: "Squarespace", initial: "Sq", note: "Squarespace handles most technical SEO for you — focus on titles, descriptions and written content, which you control in Page Settings." };
+  if (gen.indexOf("wix") !== -1 || h.indexOf("wix.com") !== -1 || h.indexOf("wixstatic") !== -1 || h.indexOf("parastorage") !== -1)
+    return { name: "Wix", initial: "Wx", note: "Wix: JavaScript rendering can delay Google indexing. Verify your pages are indexed in Search Console." };
+  if (gen.indexOf("wordpress") !== -1 || h.indexOf("wp-content") !== -1 || h.indexOf("wp-includes") !== -1)
+    return { name: "WordPress", initial: "WP", note: "WordPress is very SEO-capable, but only as good as its setup — a plugin like Yoast or Rank Math makes titles and descriptions easy to manage." };
+  if (h.indexOf("myshopify.com") !== -1 || h.indexOf("cdn.shopify") !== -1 || h.indexOf("shopify.com") !== -1)
+    return { name: "Shopify", initial: "Sh", note: "Shopify covers the technical basics well — your biggest SEO wins are usually unique product descriptions and collection page content." };
+  if (gen.indexOf("webflow") !== -1 || h.indexOf("webflow.io") !== -1 || h.indexOf("website-files.com") !== -1)
+    return { name: "Webflow", initial: "Wf", note: "Webflow gives you full control of SEO settings per page — which means nothing is set automatically. Check each page's settings panel." };
+  return { name: "Platform not recognised", initial: "?", note: "We couldn't identify the CMS from the HTML. The checks below apply to any platform." };
+}
+
+/* ---------- core analysis ---------- */
+function analyseHTML(html, finalUrl) {
+  var parser = new DOMParser();
+  var doc = parser.parseFromString(html, "text/html");
+  var urlObj = new URL(finalUrl);
+  var pageRoot = rootDomain(urlObj.hostname);
+  var now = new Date();
+  var thisYear = now.getFullYear();
+
+  var bodyTextAll = getVisibleText(doc, false);   // includes header/footer — for local signals
+  var bodyTextMain = getVisibleText(doc, true);   // stripped of nav/footer — for word count
+  var lowerAll = bodyTextAll.toLowerCase();
+
+  var sections = [];
+  function addSection(name, max) {
+    var s = { name: name, max: max, score: 0, checks: [] };
+    sections.push(s);
+    return s;
+  }
+  // check(section, id, status 'pass'|'warn'|'fail', pts awarded, what, why, quick-win opts)
+  function check(s, id, status, pts, what, why, qw) {
+    s.score += pts;
+    s.checks.push({ id: id, status: status, what: what, why: why, qw: qw || null });
+  }
+
+  /* ===== Section 1 — On-page basics (20) ===== */
+  var s1 = addSection("On-page basics", 20);
+  var titleEl = doc.querySelector("title");
+  var title = titleEl ? titleEl.textContent.replace(/\s+/g, " ").trim() : "";
+  if (title) {
+    check(s1, "title-present", "pass", 4, "Title tag found", "Your page has a title — it's the headline Google shows in search results.");
+    var tLen = title.length;
+    if (tLen >= 50 && tLen <= 60) {
+      check(s1, "title-length", "pass", 3, "Title length is " + tLen + " characters", "Between 50 and 60 characters — it will display in full in search results.");
+    } else if (tLen > 60) {
+      check(s1, "title-length", "warn", 1, "Title is " + tLen + " characters — too long", "Google cuts titles off around 60 characters, so the end of yours won't show.",
+        { impact: 8, what: "Trim your title tag from " + tLen + " to under 60 characters", how: "Edit the page title in your CMS's page settings. Keep the most important keyword near the front. Current title: \u201C" + title.slice(0, 70) + (tLen > 70 ? "\u2026" : "") + "\u201D", why: "Google cuts it off in search results, so searchers don't see your full pitch." });
+    } else {
+      check(s1, "title-length", "warn", 1, "Title is only " + tLen + " characters — too short", "Under 50 characters wastes free advertising space in Google's results.",
+        { impact: 7, what: "Expand your title tag to 50\u201360 characters", how: "Add what you do and where — e.g. \u201C" + title + " | [Your service] in [Your town]\u201D. Edit it in your CMS's page settings.", why: "A fuller title gives Google more to match against and searchers more reason to click." });
+    }
+    var words = title.split(/\s+/).filter(Boolean);
+    var hasSeparator = /[|\u2013\u2014:\u00B7-]/.test(title);
+    if (words.length >= 4 || (hasSeparator && words.length >= 3)) {
+      check(s1, "title-keyword", "pass", 3, "Title says more than just your name", "It describes what you do, which is what people actually search for.");
+    } else {
+      check(s1, "title-keyword", "fail", 0, "Title is just a name, not a description", "\u201C" + title + "\u201D tells Google nothing about what you do or where.",
+        { impact: 9, what: "Add what you do and where to your title tag", how: "Change \u201C" + title + "\u201D to something like \u201C" + title + " | [Your service] in [Your town]\u201D in your CMS's page settings.", why: "Nobody searches your business name until they already know you — they search for the service." });
+    }
+  } else {
+    check(s1, "title-present", "fail", 0, "No title tag", "Google will invent its own headline for your page — usually badly.",
+      { impact: 10, what: "Add a title tag to this page", how: "In your CMS's page settings, set a page title of 50\u201360 characters that says what you do and where.", why: "The title is the single most important on-page ranking signal and your headline in search results." });
+    check(s1, "title-length", "fail", 0, "Title length can't be checked", "There's no title to measure.");
+    check(s1, "title-keyword", "fail", 0, "Title keyword can't be checked", "There's no title to read.");
+  }
+
+  var desc = meta(doc, "description");
+  if (desc) {
+    check(s1, "desc-present", "pass", 4, "Meta description found", "You control the sales pitch that appears under your title in Google.");
+    var dLen = desc.length;
+    if (dLen >= 150 && dLen <= 160) {
+      check(s1, "desc-length", "pass", 3, "Description length is " + dLen + " characters", "In the 150\u2013160 sweet spot — it displays in full.");
+    } else if (dLen > 160) {
+      check(s1, "desc-length", "warn", 1, "Description is " + dLen + " characters — too long", "Google truncates it around 160 characters, so your ending gets cut.",
+        { impact: 5, what: "Trim your meta description from " + dLen + " to 150\u2013160 characters", how: "Edit it in your CMS's SEO or page settings. Lead with your strongest line — the cut happens at the end.", why: "A truncated pitch mid-sentence looks sloppy in search results." });
+    } else {
+      check(s1, "desc-length", "warn", 1, "Description is only " + dLen + " characters — too short", "You're leaving free pitch space on the table.",
+        { impact: 5, what: "Expand your meta description to 150\u2013160 characters", how: "Add a concrete benefit and a location to what's there now (currently " + dLen + " characters). Edit it in your CMS's SEO settings.", why: "It's the free ad copy under your Google listing — use all of it." });
+    }
+  } else {
+    check(s1, "desc-present", "fail", 0, "No meta description", "Google will grab a random sentence from your page instead.",
+      { impact: 8, what: "Write a meta description for this page", how: "In your CMS's SEO or page settings, write 150\u2013160 characters: what you do, where, and why choose you.", why: "It's the pitch under your headline in search results — you want to control it, not let Google guess." });
+    check(s1, "desc-length", "fail", 0, "Description length can't be checked", "There's no description to measure.");
+  }
+
+  var h1s = doc.querySelectorAll("h1");
+  if (h1s.length === 1) {
+    check(s1, "h1", "pass", 3, "Exactly one H1 heading", "One clear main heading tells Google exactly what this page is about.");
+  } else if (h1s.length === 0) {
+    check(s1, "h1", "fail", 0, "No H1 heading on the page", "The page has no main heading, so Google has to guess the topic.",
+      { impact: 7, what: "Add one H1 heading to the page", how: "Make your main on-page headline a Heading 1 in your editor. Say what you do and where — not just \u201CWelcome\u201D.", why: "The H1 is the strongest content signal on the page after the title tag." });
+  } else {
+    check(s1, "h1", "fail", 0, h1s.length + " H1 headings found — there should be exactly one", "Multiple main headings dilute the signal about what this page is for.",
+      { impact: 5, what: "Reduce " + h1s.length + " H1 headings to one", how: "Keep your main headline as Heading 1 and change the others to Heading 2 in your editor. (Some page builders do this automatically — check each headline block's setting.)", why: "One H1 gives Google one clear answer to \u201Cwhat is this page about?\u201D" });
+  }
+
+  /* ===== Section 2 — Content & structure (20) ===== */
+  var s2 = addSection("Content & structure", 20);
+  var h2Count = doc.querySelectorAll("h2").length;
+  if (h2Count >= 2) {
+    check(s2, "h2s", "pass", 4, h2Count + " H2 subheadings found", "Subheadings make the page scannable for people and clearer for Google.");
+  } else {
+    check(s2, "h2s", "fail", 0, h2Count === 1 ? "Only one H2 subheading" : "No H2 subheadings", "Long unbroken text is hard to scan — for visitors and for search engines.",
+      { impact: 4, what: "Break your page up with H2 subheadings", how: "Add a Heading 2 above each section of your page — services, about, location. Use words people search for.", why: "Structured pages keep visitors reading and give Google extra topic signals." });
+  }
+
+  var wordCount = bodyTextMain ? bodyTextMain.split(/\s+/).filter(Boolean).length : 0;
+  if (wordCount >= 600) {
+    check(s2, "wordcount", "pass", 4, "About " + wordCount + " words of body text", "Plenty of content for Google to understand and rank the page.");
+  } else if (wordCount >= 300) {
+    check(s2, "wordcount", "warn", 2, "About " + wordCount + " words of body text — a little thin", "Enough to rank, but pages with 600+ words usually do better.",
+      { impact: 4, what: "Grow this page from " + wordCount + " to 600+ words", how: "Add a section answering the questions customers actually ask you — pricing, process, areas covered.", why: "More genuinely useful text gives Google more reasons to show your page." });
+  } else {
+    check(s2, "wordcount", "fail", 0, "Only about " + wordCount + " words of body text", "Under 300 words, Google struggles to work out what the page offers.",
+      { impact: 8, what: "Add real written content — this page has roughly " + wordCount + " words", how: "Write at least 300 words (aim for 600+): what you do, who it's for, where you work, and why you. If your site loads content with JavaScript, some text may be invisible to this check — verify in Search Console.", why: "Thin pages rarely rank. Text is what Google reads." });
+  }
+
+  var links = doc.querySelectorAll("a[href]");
+  var internal = 0, blogFound = false;
+  var blogPat = /\/(blog|news|articles|insights|journal|stories|resources|posts)(\/|$|\?|#)/i;
+  for (var li = 0; li < links.length; li++) {
+    var href = links[li].getAttribute("href") || "";
+    if (!href || href.charAt(0) === "#" || /^(mailto:|tel:|javascript:)/i.test(href)) continue;
+    var abs;
+    try { abs = new URL(href, finalUrl); } catch (e) { continue; }
+    var sameSite = rootDomain(abs.hostname) === pageRoot;
+    if (sameSite) {
+      if (abs.pathname && abs.pathname !== "/" ) internal++;
+      if (blogPat.test(abs.pathname)) blogFound = true;
+    }
+  }
+  if (internal >= 3) {
+    check(s2, "internal-links", "pass", 4, internal + " internal links found", "Links between your own pages help Google discover and connect them.");
+  } else {
+    check(s2, "internal-links", "fail", 0, "Only " + internal + " internal link" + (internal === 1 ? "" : "s") + " found", "Google follows links to find your other pages — this page is a dead end.",
+      { impact: 5, what: "Link to at least three of your other pages from this one", how: "Add natural links in your text — \u201Csee our [services]\u201D, \u201Cread about [pricing]\u201D — not just menu items.", why: "Internal links spread ranking strength around your site and keep visitors moving." });
+  }
+
+  if (blogFound) {
+    check(s2, "blog", "pass", 4, "Blog or news section detected", "Fresh content is one of the most reliable ways for a small site to grow search traffic.");
+  } else {
+    check(s2, "blog", "fail", 0, "No blog or news section found", "We looked for links to /blog/, /news/ or /articles/ and found none.",
+      { impact: 3, what: "Start a simple blog or news page", how: "One useful post a month answering a real customer question beats none. Most platforms have a blog feature built in.", why: "Sites that publish regularly give Google a reason to keep coming back — and rank for far more searches." });
+  }
+
+  var footerEl = doc.querySelector("footer") || doc.querySelector('[role="contentinfo"]');
+  var footText = footerEl ? (footerEl.textContent || "") : bodyTextAll.slice(-600);
+  var copyMatch = footText.match(/(?:\u00A9|&copy;|copyright)[^0-9]{0,20}((?:19|20)\d{2})(?:\s*[\u2013\u2014-]\s*((?:19|20)\d{2}))?/i);
+  var footYear = copyMatch ? parseInt(copyMatch[2] || copyMatch[1], 10) : null;
+  if (footYear === null) {
+    check(s2, "copyright", "pass", 4, "No copyright year found", "Nothing in the footer looks stale — no action needed.");
+  } else if (footYear >= thisYear - 1) {
+    check(s2, "copyright", "pass", 4, "Copyright year is " + footYear + " — current", "A fresh footer year is a small trust signal for visitors.");
+  } else {
+    check(s2, "copyright", "warn", 2, "Copyright year says " + footYear, "An old footer year makes visitors (and reviewers) wonder if the business is still active.",
+      { impact: 3, what: "Update your footer copyright from " + footYear + " to " + thisYear, how: "Edit the footer in your CMS — or set it to update automatically if your platform supports it.", why: "A stale year quietly tells visitors the site is abandoned." });
+  }
+
+  /* ===== Section 3 — Technical (20) ===== */
+  var s3 = addSection("Technical", 20);
+  if (urlObj.protocol === "https:") {
+    check(s3, "https", "pass", 4, "Site loads over HTTPS", "Your connection is secure — a confirmed Google ranking factor.");
+  } else {
+    check(s3, "https", "fail", 0, "Site is not using HTTPS", "Browsers mark it \u201CNot secure\u201D and Google prefers secure sites.",
+      { impact: 9, what: "Switch your site to HTTPS", how: "Most hosts and platforms offer a free SSL certificate — turn it on in your hosting or domain settings, then make sure http:// redirects to https://.", why: "\u201CNot secure\u201D warnings scare visitors off before they've read a word." });
+  }
+
+  var canonEl = doc.querySelector('link[rel="canonical" i]');
+  var canonHref = canonEl ? (canonEl.getAttribute("href") || "").trim() : "";
+  if (canonHref) {
+    check(s3, "canonical-present", "pass", 3, "Canonical tag found", "It tells Google which version of this page is the official one.");
+    var canonOk = false, canonHost = "";
+    try { var cu = new URL(canonHref, finalUrl); canonHost = cu.hostname; canonOk = rootDomain(canonHost) === pageRoot; } catch (e) {}
+    if (canonOk) {
+      check(s3, "canonical-domain", "pass", 3, "Canonical points to your own domain", "Google credits your site for this page's content.");
+    } else {
+      check(s3, "canonical-domain", "fail", 0, "Canonical points to a different domain (" + (canonHost || canonHref) + ")", "You're telling Google another site is the real owner of this page — it may drop yours from results entirely.",
+        { impact: 10, critical: true, what: "Fix the canonical tag — it points to " + (canonHost || "another domain"), how: "The canonical URL should be this page's own address on " + pageRoot + ". This often happens after copying a template or migrating a site — your developer or platform support can fix it in minutes.", why: "This is the most damaging issue we found: it can remove your page from Google altogether." });
+    }
+  } else {
+    check(s3, "canonical-present", "warn", 1, "No canonical tag", "Not fatal, but it leaves Google to guess if the same content exists at more than one address.",
+      { impact: 3, what: "Add a canonical tag to this page", how: "Most platforms add one automatically — check your SEO settings or plugin. It should point to this page's own URL.", why: "It prevents duplicate-content confusion when pages are reachable at multiple addresses." });
+    check(s3, "canonical-domain", "warn", 0, "Canonical domain can't be checked", "There's no canonical tag to verify.");
+  }
+
+  var robots = (meta(doc, "robots") || "").toLowerCase();
+  if (robots.indexOf("noindex") !== -1) {
+    check(s3, "robots", "fail", 0, "Robots meta is set to noindex", "This page is actively telling Google \u201Cdo not show me in search results\u201D.",
+      { impact: 10, critical: true, what: "Remove the noindex tag from this page", how: "Look in your CMS's SEO or visibility settings for \u201Chide from search engines\u201D and turn it off. On WordPress, check Settings \u2192 Reading.", why: "While noindex is set, this page cannot appear in Google at all — everything else is irrelevant until it's removed." });
+  } else {
+    check(s3, "robots", "pass", 3, "Page allows indexing", robots ? "Robots meta present with no noindex — Google is welcome." : "No blocking robots meta — Google is welcome to index this page.");
+  }
+
+  if (doc.querySelector('meta[name="viewport" i]')) {
+    check(s3, "viewport", "pass", 3, "Viewport meta tag found", "The page scales properly on phones — where most local searches happen.");
+  } else {
+    check(s3, "viewport", "fail", 0, "No viewport meta tag", "On a phone, the page will render zoomed-out and tiny.",
+      { impact: 6, what: "Add a viewport meta tag", how: "Every modern platform includes this automatically — its absence suggests a very old or hand-built template. Ask your developer to add: <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">.", why: "Google ranks the mobile version of your site first. A broken mobile view costs rankings and customers." });
+  }
+
+  var langAttr = doc.documentElement ? doc.documentElement.getAttribute("lang") : null;
+  if (langAttr) {
+    check(s3, "lang", "pass", 2, "Language set to \u201C" + langAttr + "\u201D", "Search engines and screen readers know what language the page is in.");
+  } else {
+    check(s3, "lang", "fail", 0, "No language attribute on the page", "A small but easy fix for accessibility and search engines.",
+      { impact: 2, what: "Set the page language", how: "Most platforms set this in regional or site settings. For a UK site it should be lang=\"en-GB\".", why: "It helps screen readers pronounce your content and helps Google serve it to the right audience." });
+  }
+
+  if (doc.querySelector('link[rel~="icon" i], link[rel="shortcut icon" i], link[rel="apple-touch-icon" i]')) {
+    check(s3, "favicon", "pass", 2, "Favicon found", "Your icon shows in browser tabs and next to your listing in mobile search results.");
+  } else {
+    check(s3, "favicon", "fail", 0, "No favicon detected", "Your site shows a blank default icon in tabs and in Google's mobile results.",
+      { impact: 2, what: "Add a favicon", how: "Upload a square logo (at least 48\u00D748px) in your platform's site settings — usually under \u201Cbrowser icon\u201D or \u201Cfavicon\u201D.", why: "It's a small trust and recognition signal, and Google shows it next to your name in mobile results." });
+  }
+
+  /* ===== Section 4 — Social & structured data (20) ===== */
+  var s4 = addSection("Social & structured data", 20);
+  var ogChecks = [
+    ["og:title", "Open Graph title"],
+    ["og:description", "Open Graph description"],
+    ["og:image", "Open Graph image"]
+  ];
+  var ogMissing = [];
+  ogChecks.forEach(function (pair) {
+    var val = metaProp(doc, pair[0]);
+    if (val) {
+      check(s4, pair[0], "pass", 3, pair[1] + " set", "When someone shares this page, " + (pair[0] === "og:image" ? "a proper image appears" : "the right text appears") + " instead of a scrappy default.");
+    } else {
+      ogMissing.push(pair[0]);
+      check(s4, pair[0], "fail", 0, pair[1] + " missing", "Shared links to this page will look bare on Facebook, LinkedIn and WhatsApp.");
+    }
+  });
+  if (ogMissing.length) {
+    // attach one combined quick win to the first missing OG check
+    for (var ci = 0; ci < s4.checks.length; ci++) {
+      if (s4.checks[ci].id === ogMissing[0]) {
+        s4.checks[ci].qw = { impact: 4, what: "Add social sharing tags (" + ogMissing.join(", ") + " missing)", how: "In your platform's SEO or social settings, set a share title, description and image for the page. Most CMSs have dedicated fields for this.", why: "Every share on Facebook, LinkedIn or WhatsApp is free advertising — make the preview look deliberate, not broken." };
+        break;
+      }
+    }
+  }
+
+  var twCard = metaProp(doc, "twitter:card") || metaProp(doc, "twitter:title") || metaProp(doc, "twitter:image");
+  if (twCard) {
+    check(s4, "twitter", "pass", 3, "Twitter/X card tags found", "Links shared on X show a proper preview card.");
+  } else {
+    check(s4, "twitter", "fail", 0, "No Twitter/X card tag", "Links shared on X fall back to a plain, image-less preview.",
+      { impact: 2, what: "Add a Twitter/X card tag", how: "Usually the same social settings panel as Open Graph — pick \u201Csummary with large image\u201D if offered.", why: "Same idea as Open Graph: shared links should look intentional." });
+  }
+
+  var ldScripts = doc.querySelectorAll('script[type="application/ld+json"]');
+  var ldTypes = [];
+  for (var si = 0; si < ldScripts.length; si++) {
+    try {
+      var parsed = JSON.parse(ldScripts[si].textContent);
+      var items = Array.isArray(parsed) ? parsed : (parsed["@graph"] && Array.isArray(parsed["@graph"]) ? parsed["@graph"] : [parsed]);
+      items.forEach(function (it) {
+        if (it && it["@type"]) {
+          var t = it["@type"];
+          (Array.isArray(t) ? t : [t]).forEach(function (x) { if (ldTypes.indexOf(x) === -1) ldTypes.push(x); });
+        }
+      });
+    } catch (e) { /* unparseable block still counts as present */ if (ldTypes.indexOf("(unreadable)") === -1) ldTypes.push("(unreadable)"); }
+  }
+  var strongTypes = ldTypes.filter(function (t) { return /business|organization|organisation|product|service|restaurant|store|dentist|attorney|physician|plumber|electrician|localbusiness/i.test(t); });
+  if (ldScripts.length > 0) {
+    check(s4, "schema-present", "pass", 4, "Structured data found" + (ldTypes.length && ldTypes[0] !== "(unreadable)" ? " (" + ldTypes.slice(0, 3).join(", ") + " schema detected)" : ""), "JSON-LD helps Google understand exactly what this page represents.");
+    if (strongTypes.length) {
+      check(s4, "schema-quality", "pass", 4, strongTypes[0] + " schema in place", "This is the schema type that can earn rich results — stars, opening hours, map pins.");
+    } else {
+      check(s4, "schema-quality", "warn", 2, "Only generic schema (" + (ldTypes.slice(0, 2).join(", ") || "unreadable") + ")", "It's present but says little — a LocalBusiness or Organization schema would say much more.",
+        { impact: 4, what: "Upgrade your schema to LocalBusiness", how: "Add LocalBusiness structured data with your name, address, phone and opening hours. Many platforms and SEO plugins generate it from a form.", why: "It's how Google connects your website to your map listing — vital for \u201Cnear me\u201D searches." });
+    }
+  } else {
+    check(s4, "schema-present", "fail", 0, "No structured data found", "There's no JSON-LD on the page — a missed opportunity, not a penalty.",
+      { impact: 5, what: "Add LocalBusiness structured data", how: "Use your platform's SEO settings or a free schema generator to add JSON-LD with your business name, address, phone and hours, then paste it into your site header or code injection area.", why: "Structured data is how Google connects your site to your Business Profile and map results." });
+    check(s4, "schema-quality", "fail", 0, "Schema quality can't be assessed", "Add structured data first, then this check applies.");
+  }
+
+  /* ===== Section 5 — Local SEO (20) ===== */
+  var s5 = addSection("Local SEO", 20);
+  var telLink = doc.querySelector('a[href^="tel:" i]');
+  var phonePat = /(\+44\s?\(?\d{2,4}\)?[\s.-]?\d{3,4}[\s.-]?\d{3,4}|\(?0\d{2,4}\)?[\s.-]?\d{3,4}[\s.-]?\d{3,4})/;
+  var phoneMatch = telLink ? (telLink.getAttribute("href").replace(/^tel:/i, "")) : (bodyTextAll.match(phonePat) || [null])[0];
+  if (phoneMatch) {
+    check(s5, "phone", "pass", 5, "Phone number found (" + phoneMatch.trim() + ")", "Visitors — and Google — can see you're a real, contactable business.");
+  } else {
+    check(s5, "phone", "fail", 0, "No phone number found on the page", "We couldn't find a UK or international number in the visible text or a tap-to-call link.",
+      { impact: 6, what: "Put your phone number on the page", how: "Add it to your header or footer as a tap-to-call link so mobile visitors can ring you in one touch.", why: "For local businesses, the phone number is both a conversion tool and a consistency signal Google checks against your Business Profile." });
+  }
+
+  var postcodePat = /\b[A-Z]{1,2}\d{1,2}[A-Z]?\s?\d[A-Z]{2}\b/;
+  var streetPat = /\b\d+[a-z]?\s+[A-Z][a-z]+\s+(Street|Road|Lane|Avenue|Close|Drive|Way|Place|Court|Terrace|Crescent|Gardens|Hill|Park|Row|Square|Mews)\b/;
+  var pcMatch = bodyTextAll.match(postcodePat);
+  var stMatch = bodyTextAll.match(streetPat);
+  if (pcMatch || stMatch) {
+    check(s5, "address", "pass", 5, "Address found" + (pcMatch ? " (postcode " + pcMatch[0] + ")" : ""), "A visible address ties your website to your Google Business Profile.");
+  } else {
+    check(s5, "address", "fail", 0, "No address or UK postcode found", "We couldn't find a postcode or street address in the visible text.",
+      { impact: 6, what: "Add your address (or at least your postcode and town) to the footer", how: "Match it exactly to your Google Business Profile — same spelling, same format, on every page.", why: "Name-address-phone consistency between your site and your Business Profile is a core local ranking factor." });
+  }
+
+  var placeFound = null;
+  for (var pi = 0; pi < UK_PLACES.length; pi++) {
+    if (new RegExp("\\b" + UK_PLACES[pi].replace(/ /g, "\\s+") + "\\b", "i").test(lowerAll)) { placeFound = UK_PLACES[pi]; break; }
+  }
+  if (placeFound) {
+    var placeNice = placeFound.replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+    check(s5, "location-kw", "pass", 5, "Location mentioned in your content (\u201C" + placeNice + "\u201D)", "Google can't rank you for \u201Cnear me\u201D searches if your pages never say where you are.");
+  } else {
+    check(s5, "location-kw", "fail", 0, "No location mentioned in your content", "We couldn't find a town, city or county name in the page text.",
+      { impact: 7, what: "Say where you are in your page text", how: "Work your town or area naturally into your headline and body copy — \u201Cplumber in Winchester\u201D, \u201Cserving Southampton and the New Forest\u201D.", why: "Google matches local searches to pages that actually mention the place. If you never say it, you won't rank for it." });
+  }
+
+  var mapsFound = false;
+  var iframes = doc.querySelectorAll("iframe[src]");
+  for (var mi = 0; mi < iframes.length; mi++) {
+    if (/google\.[a-z.]+\/maps|maps\.google/i.test(iframes[mi].getAttribute("src") || "")) { mapsFound = true; break; }
+  }
+  if (mapsFound) {
+    check(s5, "maps", "pass", 5, "Google Maps embed found", "A live map reinforces your location for visitors and search engines.");
+  } else {
+    check(s5, "maps", "fail", 0, "No Google Maps embed found", "There's no embedded map on this page.",
+      { impact: 3, what: "Embed a Google Map of your location", how: "In Google Maps, find your business, click Share \u2192 Embed a map, and paste the code into your contact page or footer.", why: "It helps customers find you and adds one more location signal tying your site to your area." });
+  }
+
+  /* ===== totals ===== */
+  var total = sections.reduce(function (a, s) { return a + s.score; }, 0);
+  var band;
+  if (total <= 34) band = { label: "Critical", desc: "fundamentals are missing" };
+  else if (total <= 49) band = { label: "Poor", desc: "significant structural problems" };
+  else if (total <= 64) band = { label: "Fair", desc: "basics in place, meaningful gaps" };
+  else if (total <= 79) band = { label: "Good", desc: "solid foundations, tactical improvements needed" };
+  else band = { label: "Strong", desc: "well optimised, strategic improvements only" };
+
+  // Quick wins: rank all failing/warning checks that carry a qw, criticals first then by impact
+  var candidates = [];
+  sections.forEach(function (s) {
+    s.checks.forEach(function (c) {
+      if (c.qw && (c.status === "fail" || c.status === "warn")) {
+        candidates.push({ crit: !!c.qw.critical, impact: c.qw.impact || 0, qw: c.qw });
+      }
+    });
+  });
+  candidates.sort(function (a, b) { return (b.crit - a.crit) || (b.impact - a.impact); });
+  var quickWins = candidates.slice(0, 3).map(function (c) { return c.qw; });
+
+  var failCount = 0, warnCount = 0;
+  sections.forEach(function (s) { s.checks.forEach(function (c) { if (c.status === "fail") failCount++; else if (c.status === "warn") warnCount++; }); });
+
+  var verdict;
+  var issues = quickWins.length;
+  if (quickWins.some(function (q) { return q.critical; })) {
+    verdict = "One critical issue is holding you back. Fix that first — everything else can wait.";
+  } else if (total >= 80) {
+    verdict = issues ? "Well optimised. " + (issues === 1 ? "One refinement" : "A couple of refinements") + " and you're in great shape." : "Well optimised. Keep publishing and stay consistent.";
+  } else if (total >= 65) {
+    verdict = "Good foundations. " + (issues >= 3 ? "Three things to fix this week." : "A few things to fix this week.");
+  } else if (total >= 50) {
+    verdict = "The basics are there, but real gaps remain. Start with the three fixes below.";
+  } else if (total >= 35) {
+    verdict = "Significant problems — but every one of them is fixable. Start below.";
+  } else {
+    verdict = "The fundamentals are missing. The good news: the fixes below will move the needle fast.";
+  }
+
+  var thin = bodyTextAll.length < 80;
+
+  return {
+    url: finalUrl,
+    analysedAt: now,
+    sections: sections,
+    total: total,
+    band: band,
+    verdict: verdict,
+    quickWins: quickWins,
+    platform: detectPlatform(html, doc),
+    failCount: failCount,
+    warnCount: warnCount,
+    thinDom: thin
+  };
+}
+
+/* ---------- plain-text summary ---------- */
+function buildSummary(r) {
+  var lines = [];
+  lines.push("SEO snapshot — " + r.url);
+  lines.push("Analysed " + r.analysedAt.toLocaleString("en-GB") + " with the free Swoop Digital SEO Analyser");
+  lines.push("");
+  lines.push("Overall score: " + r.total + "/100 (" + r.band.label + " — " + r.band.desc + ")");
+  lines.push("");
+  lines.push("Section scores:");
+  r.sections.forEach(function (s) { lines.push("  " + s.name + ": " + s.score + "/" + s.max); });
+  lines.push("");
+  if (r.quickWins.length) {
+    lines.push("Quick wins:");
+    r.quickWins.forEach(function (q, i) {
+      lines.push("  " + (i + 1) + ". " + q.what + (q.critical ? " [CRITICAL]" : ""));
+      lines.push("     How: " + q.how);
+      lines.push("     Why: " + q.why);
+    });
+  } else {
+    lines.push("Quick wins: nothing urgent — the checks we run all pass.");
+  }
+  lines.push("");
+  lines.push("Full audit with competitor research: hello@swoopdigital.co.uk");
+  return lines.join("\n");
+}
+
+/* export for tests (no-op in browser) */
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { normaliseUrl: normaliseUrl, analyseHTML: analyseHTML, buildSummary: buildSummary, rootDomain: rootDomain, detectPlatform: detectPlatform };
+}
+
+/* ================= UI layer (browser only) ================= */
+if (typeof document !== "undefined" && document.getElementById && document.getElementById("form")) (function () {
+
+  var $ = function (id) { return document.getElementById(id); };
+  var form = $("form"), input = $("urlInput"), goBtn = $("goBtn"), note = $("inputNote");
+  var loading = $("loading"), loadingMsg = $("loadingMsg");
+  var results = $("results"), fetchError = $("fetchError");
+  var loadTimer = null, running = false;
+
+  var LOAD_MSGS = ["Fetching your page\u2026", "Reading the HTML\u2026", "Scoring your site\u2026"];
+
+  var BAND_COLOURS = { red: "#DC2626", amber: "#D97706", green: "#16A34A" };
+  function colourFor(pct) { return pct < 50 ? BAND_COLOURS.red : pct < 75 ? BAND_COLOURS.amber : BAND_COLOURS.green; }
+
+  function setNote(text, kind) {
+    note.textContent = text || "";
+    note.className = "input-note" + (kind ? " is-" + kind : "");
+    input.setAttribute("aria-invalid", kind === "error" ? "true" : "false");
+  }
+
+  function show(state) { // 'idle' | 'loading' | 'results' | 'error'
+    loading.classList.toggle("active", state === "loading");
+    results.classList.toggle("active", state === "results");
+    fetchError.classList.toggle("active", state === "error");
+    goBtn.disabled = state === "loading";
+    goBtn.textContent = state === "loading" ? "Analysing\u2026" : "Analyse";
+  }
+
+  function startLoadMsgs() {
+    var i = 0;
+    loadingMsg.textContent = LOAD_MSGS[0];
+    loadTimer = setInterval(function () { i = (i + 1) % LOAD_MSGS.length; loadingMsg.textContent = LOAD_MSGS[i]; }, 1800);
+  }
+  function stopLoadMsgs() { if (loadTimer) { clearInterval(loadTimer); loadTimer = null; } }
+
+  function fetchWithTimeout(url, ms) {
+    var ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+    var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, ms) : null;
+    return fetch(url, ctrl ? { signal: ctrl.signal } : {}).finally(function () { if (timer) clearTimeout(timer); });
+  }
+
+  // Proxy chain: tried in order until one returns usable HTML.
+  // 1. allorigins /get  (JSON-wrapped, includes upstream status)
+  // 2. allorigins /raw  (raw passthrough — often works when /get times out)
+  // 3. corsproxy.io     (current API requires the ?url= parameter format)
+  // 4. codetabs         (last resort)
+  // ============================================================
+  // RECOMMENDED SETUP: deploy the free Cloudflare Worker supplied
+  // alongside this file, then paste its URL here, e.g.
+  //   var CUSTOM_PROXY_URL = "https://swoop-seo-proxy.YOURNAME.workers.dev/?url=";
+  // With it set, the tool uses YOUR proxy (fast, reliable, no rate
+  // limits that matter). The public proxies below then only serve
+  // as emergency fallbacks. Without it, the tool depends entirely
+  // on free public services that are rate-limited and often down.
+  // ============================================================
+  var CUSTOM_PROXY_URL = "";
+
+  var PROXIES = [
+    { name: "allorigins-get", kind: "json",
+      build: function (u) { return "https://api.allorigins.win/get?url=" + encodeURIComponent(u); } },
+    { name: "allorigins-raw", kind: "raw",
+      build: function (u) { return "https://api.allorigins.win/raw?url=" + encodeURIComponent(u); } },
+    { name: "corsproxy", kind: "raw",
+      build: function (u) { return "https://corsproxy.io/?url=" + encodeURIComponent(u); } },
+    { name: "codetabs", kind: "raw",
+      build: function (u) { return "https://api.codetabs.com/v1/proxy?quest=" + encodeURIComponent(u); } }
+  ];
+  if (CUSTOM_PROXY_URL) {
+    PROXIES.unshift({ name: "swoop-proxy", kind: "raw",
+      build: function (u) { return CUSTOM_PROXY_URL + encodeURIComponent(u); } });
+  }
+
+  function looksLikeHtml(text) {
+    return typeof text === "string" && text.length >= 200 && /<(!doctype|html|head|body|meta|title|div)[\s>]/i.test(text);
+  }
+
+  function tryProxy(p, targetUrl) {
+    return fetchWithTimeout(p.build(targetUrl), 14000).then(function (res) {
+      if (!res.ok) throw new Error(p.name + " responded " + res.status);
+      if (p.kind === "json") {
+        return res.json().then(function (data) {
+          var status = data && data.status && data.status.http_code;
+          if (!data || !data.contents || (status && status >= 400)) throw new Error(p.name + " empty or upstream " + status);
+          if (!looksLikeHtml(data.contents)) throw new Error(p.name + " returned non-HTML");
+          return data.contents;
+        });
+      }
+      return res.text().then(function (text) {
+        if (!looksLikeHtml(text)) throw new Error(p.name + " returned non-HTML");
+        return text;
+      });
+    });
+  }
+
+  function describeFailure(err) {
+    var msg = err && err.message ? err.message : "unknown error";
+    // A TypeError from fetch = the request never got out: ad blocker,
+    // network filter, DNS block or the service being offline.
+    if (err && (err.name === "TypeError" || /failed to fetch|networkerror|load failed/i.test(msg))) return "blocked or unreachable";
+    if (err && err.name === "AbortError") return "timed out";
+    return msg;
+  }
+
+  function fetchPage(targetUrl) {
+    var i = 0, attempts = [];
+    function next() {
+      if (i >= PROXIES.length) {
+        var e2 = new Error("all proxies failed");
+        e2.attempts = attempts;
+        return Promise.reject(e2);
+      }
+      var p = PROXIES[i++];
+      return tryProxy(p, targetUrl).catch(function (err) {
+        var detail = describeFailure(err);
+        attempts.push({ name: p.name, detail: detail });
+        if (typeof console !== "undefined" && console.warn) console.warn("[SEO analyser] " + p.name + ": " + detail + " — trying next route");
+        return next();
+      });
+    }
+    return next();
+  }
+
+  var ICONS = { pass: "\u2713", fail: "\u2715", warn: "\u26A0" };
+  var ICON_LABEL = { pass: "Pass", fail: "Fail", warn: "Warning" };
+
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+
+  function render(r) {
+    // header meta
+    $("runMeta").textContent = r.url.replace(/^https?:\/\//, "") + " \u00B7 " + r.analysedAt.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }) + ", " + r.analysedAt.toLocaleDateString("en-GB");
+
+    // overall score
+    var col = colourFor(r.total);
+    var hero = $("scoreHero");
+    hero.style.setProperty("--band-color", col);
+    $("dialRing").style.setProperty("--band-color", col);
+    $("dialRing").style.setProperty("--pct", r.total);
+    $("scoreNum").textContent = r.total;
+    $("scoreNum").style.color = col;
+    $("dial").setAttribute("aria-label", "Overall score " + r.total + " out of 100 — " + r.band.label);
+    $("scoreBand").textContent = r.band.label;
+    $("scoreBand").style.background = col;
+    $("scoreVerdict").textContent = r.verdict;
+    $("scoreUrl").textContent = r.url;
+
+    // platform
+    $("platformIcon").textContent = r.platform.initial;
+    $("platformName").textContent = r.platform.name;
+    $("platformNote").textContent = r.platform.note;
+
+    // quick wins
+    var qwList = $("qwList");
+    qwList.innerHTML = "";
+    if (r.quickWins.length) {
+      r.quickWins.forEach(function (q, i) {
+        var li = el("li", "qw-item");
+        li.appendChild(el("span", "qw-n", String(i + 1)));
+        var body = el("div");
+        var what = el("p", "qw-what", q.what);
+        if (q.critical) { var tag = el("span", "crit", "Critical"); what.appendChild(document.createTextNode(" ")); what.appendChild(tag); }
+        body.appendChild(what);
+        body.appendChild(el("p", "qw-how", q.how + " " + q.why));
+        li.appendChild(body);
+        qwList.appendChild(li);
+      });
+    } else {
+      qwList.appendChild(el("p", "qw-none", "Nothing urgent. Every check we can run from your HTML passes — the next gains come from content, reviews and links, which is exactly what a full audit maps out."));
+    }
+
+    // section cards
+    var grid = $("sectionsGrid");
+    grid.innerHTML = "";
+    r.sections.forEach(function (s, idx) {
+      var pct = (s.score / s.max) * 100;
+      var scol = colourFor(pct);
+      var card = el("article", "section-card");
+
+      var head = el("button", "section-head");
+      head.type = "button";
+      head.setAttribute("aria-expanded", "false");
+      var bodyId = "sec-body-" + idx;
+      head.setAttribute("aria-controls", bodyId);
+      head.appendChild(el("span", "section-title", s.name));
+      var sc = el("span", "section-score", "");
+      sc.style.color = scol;
+      sc.appendChild(document.createTextNode(s.score));
+      var small = el("small", null, " / " + s.max);
+      sc.appendChild(small);
+      head.appendChild(sc);
+      head.appendChild(el("span", "chev", "\u25B6"));
+      card.appendChild(head);
+
+      var meter = el("div", "section-meter");
+      var fillBar = el("span");
+      fillBar.style.width = pct + "%";
+      fillBar.style.background = scol;
+      meter.appendChild(fillBar);
+      card.appendChild(meter);
+
+      var body = el("div", "section-body");
+      body.id = bodyId;
+      s.checks.forEach(function (c) {
+        var row = el("div", "check " + c.status);
+        var ico = el("span", "ico", ICONS[c.status]);
+        ico.setAttribute("role", "img");
+        ico.setAttribute("aria-label", ICON_LABEL[c.status]);
+        row.appendChild(ico);
+        var txt = el("div");
+        var whatP = el("p", "what", c.what);
+        if (c.qw && c.qw.critical) whatP.appendChild(el("span", "crit", "Critical"));
+        txt.appendChild(whatP);
+        txt.appendChild(el("p", "why", c.why));
+        row.appendChild(txt);
+        body.appendChild(row);
+      });
+      card.appendChild(body);
+
+      head.addEventListener("click", function () {
+        var open = head.getAttribute("aria-expanded") === "true";
+        head.setAttribute("aria-expanded", open ? "false" : "true");
+      });
+
+      grid.appendChild(card);
+    });
+
+    // skipped / partial note
+    var skipped = $("skippedNote");
+    if (r.thinDom) {
+      skipped.hidden = false;
+      skipped.textContent = "Heads up: this page returned very little readable HTML — it probably builds its content with JavaScript. Content, word-count and local checks may under-report as a result; the technical and metadata checks above are still accurate.";
+    } else {
+      skipped.hidden = true;
+      skipped.textContent = "";
+    }
+  }
+
+  function renderFetchError(err) {
+    var diag = $("fetchDiag");
+    if (!diag) return;
+    diag.innerHTML = "";
+    var attempts = (err && err.attempts) || [];
+    if (!attempts.length) return;
+    var allBlocked = attempts.every(function (a) { return a.detail === "blocked or unreachable"; });
+    var list = el("ul", "diag-list");
+    attempts.forEach(function (a) {
+      list.appendChild(el("li", null, a.name + " \u2014 " + a.detail));
+    });
+    diag.appendChild(el("p", "diag-title", "What we tried:"));
+    diag.appendChild(list);
+    if (allBlocked) {
+      diag.appendChild(el("p", "diag-hint", "Every route was blocked before it left your browser. That usually means an ad blocker or network filter is stopping the proxy services this tool relies on \u2014 try a private window with extensions off. If you run this tool, the permanent fix is connecting your own proxy (see the setup notes)."));
+    }
+  }
+
+  var lastResult = null;
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (running) return;
+    var v = normaliseUrl(input.value);
+    if (!v.ok) { setNote(v.error, "error"); return; }
+    setNote(v.prepended ? "We've added https:// for you — analysing " + v.url : "", v.prepended ? "info" : null);
+
+    running = true;
+    lastResult = null;
+    show("loading");
+    startLoadMsgs();
+
+    fetchPage(v.url)
+      .then(function (html) {
+        var r = analyseHTML(html, v.url);
+        lastResult = r;
+        render(r);
+        stopLoadMsgs();
+        show("results");
+        running = false;
+        var hero = $("scoreHero");
+        if (hero.scrollIntoView) hero.scrollIntoView({ behavior: "smooth", block: "start" });
+      })
+      .catch(function (err) {
+        stopLoadMsgs();
+        renderFetchError(err);
+        show("error");
+        running = false;
+      });
+  });
+
+  $("copyBtn").addEventListener("click", function () {
+    if (!lastResult) return;
+    var text = buildSummary(lastResult);
+    var btn = $("copyBtn");
+    function done() {
+      btn.classList.add("copied");
+      btn.textContent = "Copied \u2713";
+      setTimeout(function () { btn.classList.remove("copied"); btn.textContent = "Copy summary"; }, 2200);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(function () { legacyCopy(text); done(); });
+    } else { legacyCopy(text); done(); }
+    function legacyCopy(t) {
+      var ta = document.createElement("textarea");
+      ta.value = t; ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand("copy"); } catch (e) {}
+      document.body.removeChild(ta);
+    }
+  });
+
+  $("resetBtn").addEventListener("click", function () {
+    lastResult = null;
+    running = false;
+    stopLoadMsgs();
+    input.value = "";
+    setNote("");
+    $("runMeta").textContent = "";
+    $("qwList").innerHTML = "";
+    $("sectionsGrid").innerHTML = "";
+    $("skippedNote").hidden = true;
+    var diag = $("fetchDiag");
+    if (diag) diag.innerHTML = "";
+    show("idle");
+    input.focus();
+    var hero = document.getElementById("hero");
+    if (hero.scrollIntoView) hero.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+
+})();
+
+</script>
+</body>
+</html>
